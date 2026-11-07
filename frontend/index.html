@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>E-Shop Tech | Tienda en Línea Guatemala</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white p-4 shadow-md flex justify-between items-center px-8 sticky top-0 z-50">
+        <h1 class="text-2xl font-bold"><i class="fa-solid fa-store mr-2"></i>E-Shop Tech</h1>
+        <button onclick="toggleCarrito()" class="bg-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-600 transition flex items-center">
+            <i class="fa-solid fa-cart-shopping mr-2"></i> Carrito (<span id="cart-count">0</span>)
+        </button>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-6xl mx-auto my-8 p-4">
+        
+        <!-- Ubicación Tienda Física -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border mb-8 flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold text-indigo-900"><i class="fa-solid fa-location-dot text-red-500 mr-2"></i>Showroom / Tienda Física</h2>
+                <p class="text-gray-600 text-sm mt-1">Plaza Tech, 10ª Calle 14-25, Zona 10, Ciudad de Guatemala.</p>
+                <p class="text-xs text-gray-400 mt-1">Horario: Lunes a Sábado de 9:00 AM a 7:00 PM</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-indigo-50 border border-indigo-200 p-3 rounded-xl text-indigo-800 text-sm font-semibold">
+                <i class="fa-solid fa-truck-fast mr-1"></i> Envíos nacionales vía Cargo Expreso y Guatex
+            </div>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-4 border-b pb-2">Catálogo de Productos Tecnológicos</h3>
+        <div id="productos-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Cargado dinámicamente desde la BD -->
+        </div>
+    </main>
+
+    <!-- Carrito Desplegable (Modal Lateral) -->
+    <div id="carrito-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-end z-50">
+        <div class="bg-white w-full max-w-md h-full p-6 flex flex-col shadow-2xl overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-4">
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-cart-shopping mr-2"></i>Tu Carrito</h3>
+                <button onclick="toggleCarrito()" class="text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
+            </div>
+
+            <div id="carrito-items" class="flex-1 my-4 space-y-4 overflow-y-auto">
+                <p class="text-gray-400 text-center py-8">Tu carrito está vacío</p>
+            </div>
+
+            <div class="border-t pt-4 space-y-3">
+                <div class="flex justify-between text-sm"><span>Subtotal:</span><span id="subtotal">Q 0.00</span></div>
+                <div class="flex justify-between text-sm"><span>IVA (12%):</span><span id="iva">Q 0.00</span></div>
+                <div class="flex justify-between text-lg font-bold border-t pt-2"><span>Total:</span><span id="total" class="text-indigo-600">Q 0.00</span></div>
+
+                <!-- Formulario de Facturación y Envío -->
+                <div class="bg-gray-50 p-3 rounded-xl border space-y-2">
+                    <h4 class="font-bold text-xs text-indigo-900 border-b pb-1">Datos de Facturación y Envío</h4>
+                    <input type="email" id="cliente-correo" placeholder="Correo electrónico (para factura)" class="w-full border p-2 rounded text-sm bg-white" required>
+                    <input type="tel" id="cliente-whatsapp" placeholder="WhatsApp (ej. +502 55555555)" class="w-full border p-2 rounded text-sm bg-white" required>
+
+                    <label class="block text-xs font-bold text-gray-700 mt-1">Empresa de Envío:</label>
+                    <select id="empresa-envio" class="w-full border p-2 rounded text-sm bg-white">
+                        <option value="Cargo Expreso">Cargo Expreso (1-2 días)</option>
+                        <option value="Guatex">Guatex (Estándar Departamental)</option>
+                    </select>
+
+                    <label class="block text-xs font-bold text-gray-700 mt-1">Método de Pago:</label>
+                    <select id="metodo-pago" class="w-full border p-2 rounded text-sm bg-white" onchange="toggleTarjeta(this.value)">
+                        <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
+                        <option value="Efectivo">Pago Contra Entrega</option>
+                    </select>
+
+                    <div id="form-tarjeta" class="space-y-2 mt-2">
+                        <input type="text" placeholder="Número de Tarjeta (4532 ••••)" class="w-full border p-2 rounded text-sm">
+                        <div class="flex space-x-2">
+                            <input type="text" placeholder="MM/AA" class="w-1/2 border p-2 rounded text-sm">
+                            <input type="password" placeholder="CVV" class="w-1/2 border p-2 rounded text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="procesarCompra()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+                    Confirmar y Pagar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Seguimiento y Factura Exitosa -->
+    <div id="modal-seguimiento" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl text-center space-y-4">
+            <div class="text-green-600 text-5xl"><i class="fa-solid fa-circle-check"></i></div>
+            <h3 class="text-2xl font-bold">¡Compra Exitosa!</h3>
+            <p class="text-sm text-gray-600">Factura digital generada y enviada a tu correo electrónico.</p>
+            
+            <div class="bg-gray-50 p-4 rounded-xl border text-left space-y-2 text-sm">
+                <p><strong>Número de Guía:</strong> <span id="lbl-guia" class="text-indigo-600 font-mono font-bold"></span></p>
+                <p><strong>Courier:</strong> <span id="lbl-empresa"></span></p>
+                <p><strong>Estado:</strong> <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">Empacando en bodega</span></p>
+            </div>
+
+            <div class="space-y-2">
+                <a id="btn-whatsapp" href="#" target="_blank" class="block w-full bg-green-600 text-white py-2.5 rounded-xl font-bold hover:bg-green-700 text-center">
+                    <i class="fa-brands fa-whatsapp mr-2"></i> Ver Factura por WhatsApp
+                </a>
+                <button onclick="cerrarSeguimiento()" class="w-full bg-gray-800 text-white py-2.5 rounded-xl font-bold hover:bg-black">
+                    Aceptar y Volver a la Tienda
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script JavaScript Completo -->
+    <script>
+        let carrito = [];
+
+        async function cargarProductos() {
+            try {
+                const res = await fetch('http://localhost:5000/api/productos');
+                const productos = await res.json();
+                
+                const grid = document.getElementById('productos-grid');
+                grid.innerHTML = productos.map(p => `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <img src="${p.imagen}" class="w-full h-48 object-cover rounded-lg mb-4">
+                            <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-semibold">${p.categoria}</span>
+                            <h3 class="font-bold text-lg mt-2">${p.nombre}</h3>
+                            <p class="text-sm text-gray-500 mb-2">${p.descripcion}</p>
+                            <p class="text-sm font-semibold text-gray-700">Stock disponible: ${p.stock}</p>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-2 border-t">
+                            <span class="text-xl font-bold text-indigo-600">Q ${Number(p.precio).toFixed(2)}</span>
+                            <button onclick="agregarAlCarrito(${p.id}, '${p.nombre}', ${p.precio})" 
+                                class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700">
+                                Agregar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error al cargar productos:', err);
+            }
+        }
+
+        function agregarAlCarrito(id, nombre, precio) {
+            const item = carrito.find(i => i.id === id);
+            if(item) item.cantidad++;
+            else carrito.push({ id, nombre, precio, cantidad: 1 });
+            actualizarCarritoUI();
+            alert(`¡${nombre} agregado al carrito!`);
+        }
+
+        function actualizarCarritoUI() {
+            document.getElementById('cart-count').innerText = carrito.reduce((sum, i) => sum + i.cantidad, 0);
+            const container = document.getElementById('carrito-items');
+            
+            if(carrito.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center py-8">Tu carrito está vacío</p>`;
+            } else {
+                container.innerHTML = carrito.map(i => `
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <div>
+                            <h4 class="font-semibold text-sm">${i.nombre}</h4>
+                            <p class="text-xs text-gray-500">Q ${i.precio} x ${i.cantidad}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-sm">Q ${(i.precio * i.cantidad).toFixed(2)}</span>
+                            <button onclick="eliminarDelCarrito(${i.id})" class="text-red-500 hover:text-red-700 px-2">&times;</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const subtotal = carrito.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
+            const iva = subtotal * 0.12;
+            const total = subtotal + iva;
+
+            document.getElementById('subtotal').innerText = `Q ${subtotal.toFixed(2)}`;
+            document.getElementById('iva').innerText = `Q ${iva.toFixed(2)}`;
+            document.getElementById('total').innerText = `Q ${total.toFixed(2)}`;
+        }
+
+        function eliminarDelCarrito(id) {
+            carrito = carrito.filter(i => i.id !== id);
+            actualizarCarritoUI();
+        }
+
+        function toggleCarrito() {
+            const modal = document.getElementById('carrito-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleTarjeta(val) {
+            document.getElementById('form-tarjeta').style.display = val === 'Tarjeta' ? 'block' : 'none';
+        }
+
+        async function procesarCompra() {
+            if(carrito.length === 0) return alert('El carrito está vacío');
+
+            const correo = document.getElementById('cliente-correo').value;
+            const whatsapp = document.getElementById('cliente-whatsapp').value;
+            if(!correo || !whatsapp) return alert('Ingresa tu correo y WhatsApp para recibir la factura.');
+
+            const total = carrito.reduce((sum, i) => sum + (i.precio * i.cantidad), 0) * 1.12;
+            const empresaEnvio = document.getElementById('empresa-envio').value;
+            const numeroGuia = 'GT-' + Math.floor(100000 + Math.random() * 900000);
+
+            try {
+                const response = await fetch('http://localhost:5000/api/ventas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        usuario_id: 1, 
+                        total, 
+                        correo, 
+                        whatsapp, 
+                        empresaEnvio, 
+                        items: carrito 
+                    })
+                });
+
+                if(response.ok) {
+                    document.getElementById('lbl-guia').innerText = numeroGuia;
+                    document.getElementById('lbl-empresa').innerText = empresaEnvio;
+
+                    const mensajeWp = `Hola! Gracias por tu compra en E-Shop Tech. 🛒\n\nTu No. de Guía (${empresaEnvio}) es: *${numeroGuia}*.\nTotal pagado: *Q ${total.toFixed(2)}*.\nFactura digital enviada a: ${correo}`;
+                    document.getElementById('btn-whatsapp').href = `https://wa.me/${whatsapp.replace(/[^0-9]*/g, '')}?text=${encodeURIComponent(mensajeWp)}`;
+
+                    toggleCarrito();
+                    document.getElementById('modal-seguimiento').classList.remove('hidden');
+                    document.getElementById('modal-seguimiento').classList.add('flex');
+                    
+                    carrito = [];
+                    actualizarCarritoUI();
+                    cargarProductos();
+                }
+            } catch(err) {
+                alert('Error al procesar la venta con el servidor.');
+            }
+        }
+
+        function cerrarSeguimiento() {
+            document.getElementById('modal-seguimiento').classList.remove('flex');
+            document.getElementById('modal-seguimiento').classList.add('hidden');
+        }
+
+        cargarProductos();
+    </script>
+</body>
+</html>
